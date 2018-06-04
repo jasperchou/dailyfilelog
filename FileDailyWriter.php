@@ -38,9 +38,9 @@ class FileDailyWriter implements PsrLoggerInterface
 
     public function writeLog($level, $name, $message, array $context = [])
     {
+        $message = $this->formatMessage($message);
         $filename = $this->getTimedFilename($name);
         if( !isset($this->fileLoggers[$filename]) ){
-            Log::debug('new');
             $this->fileLoggers[$filename] = new Logger($name);
             $this->fileLoggers[$filename]->pushHandler(
                 $handler = new StreamHandler(
@@ -49,8 +49,6 @@ class FileDailyWriter implements PsrLoggerInterface
                 )
             );
             $handler->setFormatter($this->getDefaultFormatter());
-        } else {
-            Log::debug('findit');
         }
 
         return $this->fileLoggers[$filename]->{$level}($message, $context);
@@ -66,16 +64,18 @@ class FileDailyWriter implements PsrLoggerInterface
         return $timedFilename;
     }
 
-    //Log::name([option]'level', 'Message');
+    //Log::name([option]'level', 'Message'|['msg1', 'msg2']);
     function __call($func, $params){
         $level = 'info';
         $msg = $params[0];
-        $lowerParams0 = strtolower($params[0]);
-        if(in_array($lowerParams0, array_keys($this->levels))){
-            $level = $lowerParams0;
-            $msg = $params[1];
+        if (is_string($params[0])) {
+            $lowerParams0 = strtolower($params[0]);
+            if(in_array($lowerParams0, array_keys($this->levels))){
+                $level = $lowerParams0;
+                $msg = $params[1];
+            }
         }
-        return $this->writeLog($level, $func, $this->formatMessage($msg));
+        return $this->writeLog($level, $func, $msg);
     }
 
     /**
