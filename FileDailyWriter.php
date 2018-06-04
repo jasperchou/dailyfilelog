@@ -7,7 +7,6 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface as PsrLoggerInterface;
 use Monolog\Formatter\LineFormatter;
-use Illuminate\Support\Facades\Log;
 
 class FileDailyWriter implements PsrLoggerInterface
 {
@@ -29,10 +28,14 @@ class FileDailyWriter implements PsrLoggerInterface
     protected $dateFormat;
     protected $path;
 
-    public function __construct($path = '') {
+    public $msgJsonEncode;
+    public $jsonOptions;
+
+    public function __construct($path = '', $msgJsonEncode = true, $jsonOptions = 0) {
         $this->path = $path;
         $this->filenameFormat = '{filename}-{date}';
         $this->dateFormat = 'Y-m-d';
+        $this->msgJsonEncode = $msgJsonEncode;
     }
 
 
@@ -86,6 +89,10 @@ class FileDailyWriter implements PsrLoggerInterface
      */
     protected function formatMessage($message)
     {
+        if ($this->msgJsonEncode) {
+            return json_encode($message, $this->jsonOptions);
+        }
+
         if (is_array($message)) {
             return var_export($message, true);
         } elseif ($message instanceof Jsonable) {
