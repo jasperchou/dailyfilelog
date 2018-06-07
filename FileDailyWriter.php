@@ -36,8 +36,8 @@ class FileDailyWriter implements PsrLoggerInterface
         $this->filenameFormat = '{filename}-{date}';
         $this->dateFormat = 'Y-m-d';
         $this->msgJsonEncode = $msgJsonEncode;
+        $this->jsonOptions =$jsonOptions;
     }
-
 
     public function writeLog($level, $name, $message, array $context = [])
     {
