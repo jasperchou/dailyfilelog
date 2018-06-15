@@ -89,6 +89,10 @@ class FileDailyWriter implements PsrLoggerInterface
      */
     protected function formatMessage($message)
     {
+        if (is_string($message)) {
+            return $message;
+        }
+
         if ($this->msgJsonEncode) {
             return json_encode($message, $this->jsonOptions);
         }
@@ -114,6 +118,12 @@ class FileDailyWriter implements PsrLoggerInterface
         return tap(new LineFormatter(null, null, true, true), function ($formatter) {
             $formatter->includeStacktraces();
         });
+    }
+
+    public function pretty($message, array $context = [])
+    {
+        $message = json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $this->writeLog('debug', static::DEFAULT_NAME, $message, $context);
     }
 
     public function emergency($message, array $context = [])
