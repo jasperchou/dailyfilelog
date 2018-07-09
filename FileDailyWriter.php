@@ -30,19 +30,26 @@ class FileDailyWriter implements PsrLoggerInterface
 
     public $msgJsonEncode;
     public $jsonOptions;
+    public $daily;
 
-    public function __construct($path = '', $msgJsonEncode = true, $jsonOptions = 0) {
+    public function __construct($daily = false, $path = '', $msgJsonEncode = false, $jsonOptions = 0) {
         $this->path = $path;
         $this->filenameFormat = '{filename}-{date}';
         $this->dateFormat = 'Y-m-d';
         $this->msgJsonEncode = $msgJsonEncode;
         $this->jsonOptions =$jsonOptions;
+        $this->daily = $daily;
     }
 
     public function writeLog($level, $name, $message, array $context = [])
     {
-        $message = $this->formatMessage($message);
-        $filename = $this->getTimedFilename($name);
+        $message = $this->formatMessage($message, $this->msgJsonEncode, $this->jsonOptions);
+        return $this->fileLog($level, $name, $message, $context);
+    }
+
+    public function fileLog($level, $name, $message, array $context = [])
+    {
+        $filename = $this->getFilename($name);
         if( !isset($this->fileLoggers[$filename]) ){
             $this->fileLoggers[$filename] = new Logger($name);
             $this->fileLoggers[$filename]->pushHandler(
@@ -55,6 +62,13 @@ class FileDailyWriter implements PsrLoggerInterface
         }
 
         return $this->fileLoggers[$filename]->{$level}($message, $context);
+    }
+
+    protected function getFilename($name) {
+        if ($this->daily) {
+            return $this->getTimedFilename($name);
+        }
+        return $name;
     }
 
     protected function getTimedFilename($name)
@@ -87,14 +101,14 @@ class FileDailyWriter implements PsrLoggerInterface
      * @param  mixed  $message
      * @return mixed
      */
-    protected function formatMessage($message)
+    protected function formatMessage($message, $msgJsonEncode = false, $jsonOptions = 0)
     {
         if (is_string($message)) {
             return $message;
         }
 
-        if ($this->msgJsonEncode) {
-            return json_encode($message, $this->jsonOptions);
+        if ($msgJsonEncode) {
+            return json_encode($message, $jsonOptions);
         }
 
         if (is_array($message)) {
@@ -118,6 +132,12 @@ class FileDailyWriter implements PsrLoggerInterface
         return tap(new LineFormatter(null, null, true, true), function ($formatter) {
             $formatter->includeStacktraces();
         });
+    }
+
+    public function json($msgJsonEncode = true, $jsonOptions = JSON_UNESCAPED_UNICODE) {
+        $this->msgJsonEncode = $msgJsonEncode;
+        $this->jsonOptions = $jsonOptions;
+        return $this;
     }
 
     public function pretty($message, array $context = [])
