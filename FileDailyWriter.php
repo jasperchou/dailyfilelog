@@ -107,6 +107,10 @@ class FileDailyWriter implements PsrLoggerInterface
             return $message;
         }
 
+        if ($message instanceof \Throwable) {
+            return $message->__toString();
+        }
+
         if ($msgJsonEncode) {
             return json_encode($message, $jsonOptions);
         }
@@ -142,7 +146,9 @@ class FileDailyWriter implements PsrLoggerInterface
 
     public function pretty($message, array $context = [])
     {
-        $message = json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        if (!is_string($message)) {
+            $message = json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        }
         $this->writeLog('debug', static::DEFAULT_NAME, $message, $context);
     }
 
