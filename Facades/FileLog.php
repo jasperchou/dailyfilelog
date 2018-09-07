@@ -5,7 +5,7 @@ namespace App\Utils\Log\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \Illuminate\Log\Writer
+ * @see App\Utils\Log\FileDailyWriter
  */
 class FileLog extends Facade
 {

@@ -147,7 +147,7 @@ class FileDailyWriter implements PsrLoggerInterface
     public function pretty($message, array $context = [])
     {
         if (!is_string($message)) {
-            $message = json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            $message = json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
         $this->writeLog('debug', static::DEFAULT_NAME, $message, $context);
     }
